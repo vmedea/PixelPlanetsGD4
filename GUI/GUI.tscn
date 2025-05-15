@@ -1,16 +1,16 @@
 [gd_scene load_steps=18 format=3 uid="uid://xtqbie28512d"]
 
-[ext_resource type="Script" path="res://GUI/GUI.gd" id="1"]
+[ext_resource type="Script" uid="uid://xkv5f7ehsdy2" path="res://GUI/GUI.gd" id="1"]
 [ext_resource type="Theme" uid="uid://bs3li7lo5h4lm" path="res://GUI/Theme.tres" id="2"]
 [ext_resource type="PackedScene" uid="uid://b6k7tg1vynpk0" path="res://Planets/Rivers/Rivers.tscn" id="3"]
 [ext_resource type="Texture2D" uid="uid://b3nvchjx6veeg" path="res://stars.png" id="4"]
-[ext_resource type="Script" path="res://GUI/SpritesheetPopup.gd" id="5"]
+[ext_resource type="Script" uid="uid://coexfqb3wmul5" path="res://GUI/SpritesheetPopup.gd" id="5"]
 [ext_resource type="Texture2D" uid="uid://nf5qxhdss4sb" path="res://GUI/progress-under.png" id="6"]
 [ext_resource type="Texture2D" uid="uid://pj2mm533qpof" path="res://GUI/progress-over.png" id="7"]
 [ext_resource type="PackedScene" uid="uid://n2kqnn12anlo" path="res://GUI/ColorPickerButton.tscn" id="8"]
 [ext_resource type="Material" uid="uid://c4uk5xgr28thd" path="res://GUI/StarParticles.tres" id="9"]
-[ext_resource type="Script" path="res://GUI/GifPopup.gd" id="10"]
-[ext_resource type="Script" path="res://GUI/ImportExportPopup.gd" id="11"]
+[ext_resource type="Script" uid="uid://de8ilrmpl2bfh" path="res://GUI/GifPopup.gd" id="10"]
+[ext_resource type="Script" uid="uid://dajn5dcxhdxls" path="res://GUI/ImportExportPopup.gd" id="11"]
 
 [sub_resource type="Shader" id="1"]
 code = "shader_type canvas_item;
@@ -105,10 +105,10 @@ modulate = Color(1, 1, 1, 0.513726)
 material = SubResource("3")
 position = Vector2(256, 150)
 amount = 50
-process_material = ExtResource("9")
 texture = ExtResource("4")
 lifetime = 50.0
 preprocess = 50.0
+process_material = ExtResource("9")
 
 [node name="PlanetViewport" type="SubViewport" parent="."]
 transparent_bg = true
@@ -119,6 +119,7 @@ layout_mode = 3
 anchors_preset = 0
 
 [node name="Control" parent="PlanetViewport/PlanetHolder" instance=ExtResource("3")]
+layout_mode = 0
 anchors_preset = 0
 anchor_right = 0.0
 anchor_bottom = 0.0

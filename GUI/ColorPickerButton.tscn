@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://n2kqnn12anlo"]
 
-[ext_resource type="Script" path="res://GUI/ColorPickerButton.gd" id="1"]
+[ext_resource type="Script" uid="uid://clsqqyh3rcg5" path="res://GUI/ColorPickerButton.gd" id="1"]
 
 [node name="ColorPickerButton" type="Button"]
 size_flags_horizontal = 3
