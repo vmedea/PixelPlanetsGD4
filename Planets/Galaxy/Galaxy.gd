@@ -1,42 +1,42 @@
 extends "res://Planets/Planet.gd"
 
-func set_pixels(amount):
+func set_pixels(amount: int) -> void:
 	$Galaxy.material.set_shader_parameter("pixels", amount)
 	$Galaxy.size = Vector2(amount, amount) 
 
-func set_light(pos):
+func set_light(_pos: Vector2) -> void:
 	pass
 
-func set_seed(sd):
-	var converted_seed = sd%1000/100.0
+func set_seed(sd: int) -> void:
+	var converted_seed: float = sd%1000/100.0
 	$Galaxy.material.set_shader_parameter("seed", converted_seed)
 
-func set_rotate(r):
+func set_rotate(r: float) -> void:
 	$Galaxy.material.set_shader_parameter("rotation", r)
 
-func update_time(t):
+func update_time(t: float) -> void:
 	$Galaxy.material.set_shader_parameter("time", t * get_multiplier($Galaxy.material) * 0.04)
 
-func set_custom_time(t):
+func set_custom_time(t: float) -> void:
 	$Galaxy.material.set_shader_parameter("time", t * PI * 2 * $Galaxy.material.get_shader_parameter("time_speed"))
 
-func set_dither(d):
+func set_dither(d: bool) -> void:
 	$Galaxy.material.set_shader_parameter("should_dither", d)
 
-func get_dither():
+func get_dither() -> bool:
 	return $Galaxy.material.get_shader_parameter("should_dither")
 
-func get_colors():
+func get_colors() -> PackedColorArray:
 	return _get_colors_from_gradient($Galaxy.material, "colorscheme")
 
-func set_colors(colors):
+func set_colors(colors: PackedColorArray) -> void:
 	_set_colors_from_gradient($Galaxy.material, "colorscheme", colors)
 
-func randomize_colors():
-	var seed_colors = _generate_new_colorscheme(6 , randf_range(0.5,0.8), 1.4)
-	var cols = []
+func randomize_colors() -> void:
+	var seed_colors := _generate_new_colorscheme(6 , randf_range(0.5,0.8), 1.4)
+	var cols := PackedColorArray()
 	for i in 6:
-		var new_col = seed_colors[i].darkened(i/7.0)
+		var new_col := seed_colors[i].darkened(i/7.0)
 		new_col = new_col.lightened((1.0 - (i/6.0)) * 0.6)
 		cols.append(new_col)
 

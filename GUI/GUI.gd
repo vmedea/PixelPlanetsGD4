@@ -1,22 +1,24 @@
 extends Control
 
-@onready var viewport = $PlanetViewport
-@onready var viewport_planet = $PlanetViewport/PlanetHolder
-@onready var viewport_holder = $PlanetHolder
-@onready var viewport_tex = $PlanetHolder/ViewportTexture
-@onready var seedtext = $Settings/VBoxContainer/Seed/SeedText
-@onready var optionbutton = $Settings/VBoxContainer/OptionButton
-@onready var colorholder = $Settings/VBoxContainer/ColorButtonHolder
-@onready var picker = $Panel/ColorPicker
-@onready var random_colors = $Settings/VBoxContainer/HBoxContainer/RandomizeColors
-@onready var dither_button = $Settings/VBoxContainer/HBoxContainer2/ShouldDither
-@onready var layeroptions = $Settings/VBoxContainer/LayerOptions
+@onready var viewport: SubViewport = $PlanetViewport
+@onready var viewport_planet: Control = $PlanetViewport/PlanetHolder
+@onready var viewport_holder: Control = $PlanetHolder
+@onready var viewport_tex: TextureRect = $PlanetHolder/ViewportTexture
+@onready var seedtext: LineEdit = $Settings/VBoxContainer/Seed/SeedText
+@onready var optionbutton: OptionButton = $Settings/VBoxContainer/OptionButton
+@onready var colorholder: BoxContainer = $Settings/VBoxContainer/ColorButtonHolder
+@onready var picker: ColorPicker = $Panel/ColorPicker
+@onready var random_colors: Button = $Settings/VBoxContainer/HBoxContainer/RandomizeColors
+@onready var dither_button: Button = $Settings/VBoxContainer/HBoxContainer2/ShouldDither
+@onready var layeroptions: MenuButton = $Settings/VBoxContainer/LayerOptions
 
-@onready var colorbutton_scene = preload("res://GUI/ColorPickerButton.tscn")
+@onready var colorbutton_scene := preload("res://GUI/ColorPickerButton.tscn")
+const ColorPickerButtonClass := preload("res://GUI/ColorPickerButton.gd")
 const GIFExporter = preload("res://addons/gdgifexporter/exporter.gd")
 const MedianCutQuantization = preload("res://addons/gdgifexporter/quantization/median_cut.gd")
+const Planet = preload("res://Planets/Planet.gd")
 
-@onready var planets = {
+var planets: Dictionary = {
 	"Terran Wet": preload("res://Planets/Rivers/Rivers.tscn"),
 	"Terran Dry": preload("res://Planets/DryTerran/DryTerran.tscn"),	
 	"Islands": preload("res://Planets/LandMasses/LandMasses.tscn"),
@@ -30,13 +32,13 @@ const MedianCutQuantization = preload("res://addons/gdgifexporter/quantization/m
 	"Galaxy": preload("res://Planets/Galaxy/Galaxy.tscn"),
 	"Star": preload("res://Planets/Star/Star.tscn"),
 }
-var pixels = 100.0
-var sd = 0
-var colors = []
-var should_dither = true
+var pixels: int = 100
+var sd := 0
+var colors := PackedColorArray()
+var should_dither := true
 
-func _ready():
-	for k in planets.keys():
+func _ready() -> void:
+	for k: String in planets.keys():
 		optionbutton.add_item(k)
 	layeroptions.get_popup().id_pressed.connect(_on_layer_selected)
 	$ImportExportPopup.set_colors.connect(_on_import_colors_set)
@@ -47,35 +49,35 @@ func _ready():
 #	viewport.size = Vector2(pixels, pixels)
 
 
-func _on_OptionButton_item_selected(index):
-	var chosen = planets[planets.keys()[index]]
+func _on_OptionButton_item_selected(index: int) -> void:
+	var chosen: PackedScene = planets[planets.keys()[index]]
 	_create_new_planet(chosen)
 	_close_picker()
 
-func _on_SliderRotation_value_changed(value):
+func _on_SliderRotation_value_changed(value: float) -> void:
 	viewport_planet.get_child(0).set_rotate(value)
 
-func _on_Control_gui_input(event):
+func _on_Control_gui_input(event: InputEvent) -> void:
 	if (event is InputEventMouseMotion || event is InputEventScreenTouch) && Input.is_action_pressed("mouse"):
-		var normal = event.position / Vector2(300, 300)
+		var normal: Vector2 = event.position / Vector2(300, 300)
 		viewport_planet.get_child(0).set_light(normal)
 		
 		if $Panel.visible:
 			_close_picker()
 
-func _on_LineEdit_text_changed(new_text):
+func _on_LineEdit_text_changed(new_text: String) -> void:
 	call_deferred("_make_from_seed", int(new_text))
 
-func _make_from_seed(new_seed):
+func _make_from_seed(new_seed: int) -> void:
 	sd = new_seed
 	seed(sd)
 	viewport_planet.get_child(0).set_seed(sd)
 
-func _create_new_planet(type):
+func _create_new_planet(type: PackedScene) -> void:
 	for c in viewport_planet.get_children():
 		c.queue_free()
 	
-	var new_p = type.instantiate()
+	var new_p: Planet = type.instantiate()
 	viewport_planet.add_child(new_p)
 	
 	seed(sd)
@@ -104,25 +106,25 @@ func _create_new_planet(type):
 			viewport_tex.position = Vector2(0,0)
 			viewport_tex.size = Vector2(300,300)
 
-func _on_layer_selected(id):
+func _on_layer_selected(id: int) -> void:
 	viewport_planet.get_child(0).toggle_layer(id)
 	_make_layer_selection(viewport_planet.get_child(0))
 
-func _make_layer_selection(planet):
-	var layers = planet.get_layers()
+func _make_layer_selection(planet: Planet) -> void:
+	var layers := planet.get_layers()
 	layeroptions.get_popup().clear()
-	var i = 0
+	var i := 0
 	for l in layers:
 		layeroptions.get_popup().add_check_item(l.name)
 		layeroptions.get_popup().set_item_checked(i, l.visible)
 		i+=1
 
-func _make_color_buttons():
+func _make_color_buttons() -> void:
 	for b in colorholder.get_children():
 		b.queue_free()
 	
 	for i in colors.size():
-		var b = colorbutton_scene.instantiate()
+		var b: ColorPickerButtonClass = colorbutton_scene.instantiate()
 		b.set_color(colors[i])
 		b.set_index(i)
 		b.color_picked.connect(_on_colorbutton_color_picked)
@@ -131,59 +133,59 @@ func _make_color_buttons():
 		
 		colorholder.add_child(b)
 
-func _on_colorbutton_pressed(button):
+func _on_colorbutton_pressed(button: Button) -> void:
 	for b in colorholder.get_children():
 		b.is_active = false
 	button.is_active = true
 	$Panel.visible = true
 	picker.color = button.own_color
 
-func _on_colorbutton_color_picked(color, index):
+func _on_colorbutton_color_picked(color: Color, index: int) -> void:
 	colors[index] = color
 	viewport_planet.get_child(0).set_colors(colors)
 
-func _seed_random():
+func _seed_random() -> void:
 	randomize()
 	sd = randi()
 	seed(sd)
 	seedtext.text = String.num_int64(sd)
 	viewport_planet.get_child(0).set_seed(sd)
 
-func _on_Button_pressed():
+func _on_Button_pressed() -> void:
 	_seed_random()
 
-func _on_ExportPNG_pressed():
-	var planet = viewport_planet.get_child(0)
-	var tex = viewport.get_texture().get_image()
-	var image: Image = Image.create(pixels * planet.relative_scale, pixels * planet.relative_scale, false, Image.FORMAT_RGBA8)
-	var source_xy = 0
-	var source_size = pixels*planet.relative_scale
-	var source_rect = Rect2(source_xy, source_xy,source_size,source_size)
+func _on_ExportPNG_pressed() -> void:
+	var planet: Planet = viewport_planet.get_child(0)
+	var tex := viewport.get_texture().get_image()
+	var image: Image = Image.create(int(pixels * planet.relative_scale), int(pixels * planet.relative_scale), false, Image.FORMAT_RGBA8)
+	var source_xy := 0
+	var source_size := pixels*planet.relative_scale
+	var source_rect := Rect2(source_xy, source_xy,source_size,source_size)
 	image.blit_rect(tex, source_rect, Vector2(0,0))
 	
 	save_image(image)
 
-func export_spritesheet(sheet_size, progressbar, pixel_margin = 0.0):
-	var planet = viewport_planet.get_child(0)
-	var sheet = Image.create(pixels * sheet_size.x * planet.relative_scale + sheet_size.x*pixel_margin + pixel_margin,
-					pixels * sheet_size.y * planet.relative_scale + sheet_size.y*pixel_margin + pixel_margin,
+func export_spritesheet(sheet_size: Vector2i, progressbar: ProgressBar, pixel_margin: float = 0.0) -> void:
+	var planet: Planet = viewport_planet.get_child(0)
+	var sheet := Image.create(int(pixels * sheet_size.x * planet.relative_scale + sheet_size.x*pixel_margin + pixel_margin),
+					int(pixels * sheet_size.y * planet.relative_scale + sheet_size.y*pixel_margin + pixel_margin),
 					false, Image.FORMAT_RGBA8)
 	progressbar.max_value = sheet_size.x * sheet_size.y
 	
 	planet.override_time = true
 	
-	var index = 0
+	var index := 0
 	for y in range(sheet_size.y):
 		for x in range(sheet_size.x + 1):
 			planet.set_custom_time(lerp(0.0, 1.0, (index)/float((sheet_size.x+1) * sheet_size.y)))
 			await get_tree().process_frame
 			
 			if index != 0:
-				var image = viewport.get_texture().get_image()
-				var source_xy = 0
-				var source_size = pixels*planet.relative_scale
-				var source_rect = Rect2(source_xy, source_xy,source_size,source_size)
-				var destination = Vector2(x - 1,y) * pixels * planet.relative_scale + Vector2(x * pixel_margin, (y+1) * pixel_margin)
+				var image := viewport.get_texture().get_image()
+				var source_xy := 0
+				var source_size := pixels*planet.relative_scale
+				var source_rect := Rect2(source_xy, source_xy,source_size,source_size)
+				var destination := Vector2(x - 1,y) * pixels * planet.relative_scale + Vector2(x * pixel_margin, (y+1) * pixel_margin)
 				sheet.blit_rect(image, source_rect, destination)
 
 			index +=1
@@ -194,7 +196,7 @@ func export_spritesheet(sheet_size, progressbar, pixel_margin = 0.0):
 	save_image(sheet)
 	$Popup.visible = false
 
-func save_image(img):
+func save_image(img: Image) -> void:
 	if OS.get_name() == "Web" and OS.has_feature('web'):
 		JavaScriptBridge.download_buffer(img.save_png_to_buffer(), String.num_int64(sd)+".png", "image/png")
 	else:
@@ -203,33 +205,33 @@ func save_image(img):
 		else:
 			img.save_png("res://%s.png"%String.num_int64(sd))
 
-func _on_ExportSpriteSheet_pressed():
+func _on_ExportSpriteSheet_pressed() -> void:
 	$Panel.visible = false
 	$Popup.visible = true
 	$Popup.set_pixels(pixels * viewport_planet.get_child(0).relative_scale)
 
-func _on_PickerExit_pressed():
+func _on_PickerExit_pressed() -> void:
 	_close_picker()
 
-func _close_picker():
+func _close_picker() -> void:
 	$Panel.visible = false
 	for b in colorholder.get_children():
 		b.is_active = false
 
 
-func _on_RandomizeColors_pressed():
+func _on_RandomizeColors_pressed() -> void:
 	viewport_planet.get_child(0).randomize_colors()
 	colors = viewport_planet.get_child(0).get_colors()
 	for i in colorholder.get_child_count():
 		colorholder.get_child(i).set_color(colors[i])
 
-func _on_ResetColors_pressed():
+func _on_ResetColors_pressed() -> void:
 	viewport_planet.get_child(0).set_colors(viewport_planet.get_child(0).original_colors)
 	colors = viewport_planet.get_child(0).get_colors()
 	for i in colorholder.get_child_count():
 		colorholder.get_child(i).set_color(colors[i])
 
-func _on_ShouldDither_pressed():
+func _on_ShouldDither_pressed() -> void:
 	should_dither = !should_dither
 	if should_dither:
 		dither_button.text = "On"
@@ -237,14 +239,14 @@ func _on_ShouldDither_pressed():
 		dither_button.text = "Off"
 	viewport_planet.get_child(0).set_dither(should_dither)
 
-func _on_ExportGIF_pressed():
+func _on_ExportGIF_pressed() -> void:
 	$GifPopup.visible = true
 	cancel_gif = false
 
-var cancel_gif = false
-func export_gif(frames, frame_delay, progressbar):
-	var planet = viewport_planet.get_child(0)
-	var exporter = GIFExporter.new(pixels*planet.relative_scale, pixels*planet.relative_scale)
+var cancel_gif := false
+func export_gif(frames: int, frame_delay: int, progressbar: ProgressBar) -> void:
+	var planet: Planet = viewport_planet.get_child(0)
+	var exporter := GIFExporter.new(int(pixels*planet.relative_scale), int(pixels*planet.relative_scale))
 	progressbar.max_value = frames
 
 	planet.override_time = true
@@ -262,12 +264,12 @@ func export_gif(frames, frame_delay, progressbar):
 
 		await get_tree().process_frame
 
-		var tex = viewport.get_texture().get_image()
-		var image = Image.create(pixels * planet.relative_scale, pixels * planet.relative_scale, false, Image.FORMAT_RGBA8)
+		var tex := viewport.get_texture().get_image()
+		var image := Image.create(int(pixels * planet.relative_scale), int(pixels * planet.relative_scale), false, Image.FORMAT_RGBA8)
 
-		var source_xy = 0
-		var source_size = pixels*planet.relative_scale
-		var source_rect = Rect2(source_xy, source_xy,source_size,source_size)
+		var source_xy := 0
+		var source_size := pixels*planet.relative_scale
+		var source_rect := Rect2(source_xy, source_xy,source_size,source_size)
 		image.blit_rect(tex, source_rect, Vector2(0,0))
 		exporter.add_frame(image, frame_delay, MedianCutQuantization)
 
@@ -276,7 +278,7 @@ func export_gif(frames, frame_delay, progressbar):
 	if cancel_gif:
 		return
 	if OS.get_name() == "Web" and OS.has_feature('web'):
-		var data = Array(exporter.export_file_data())
+		var data := Array(exporter.export_file_data())
 		JavaScriptBridge.download_buffer(data, String.num_int64(sd)+".gif", "image/gif")
 	else:
 		var file: FileAccess
@@ -291,16 +293,16 @@ func export_gif(frames, frame_delay, progressbar):
 	$GifPopup.visible = false
 	progressbar.visible = false
 
-func _on_GifPopup_cancel_gif():
+func _on_GifPopup_cancel_gif() -> void:
 	cancel_gif = true
 
-func _on_InputPixels_text_changed(text):
+func _on_InputPixels_text_changed(text: String) -> void:
 	pixels = int(text)
 	pixels = clamp(pixels, 12, 5000)
 	if (int(text) > 5000):
-		$Settings/VBoxContainer/InputPixels.text = String(pixels)
+		$Settings/VBoxContainer/InputPixels.text = String.num_int64(pixels)
 	
-	var p = viewport_planet.get_child(0)
+	var p: Planet = viewport_planet.get_child(0)
 	p.set_pixels(pixels)
 	
 	p.position = pixels * 0.5 * (p.relative_scale -1) * Vector2(1,1)
@@ -308,12 +310,12 @@ func _on_InputPixels_text_changed(text):
 	await get_tree().process_frame
 	viewport.size = Vector2(pixels, pixels) * p.relative_scale
 
-func _on_ImportExportColors_pressed():
+func _on_ImportExportColors_pressed() -> void:
 	colors = viewport_planet.get_child(0).get_colors()
 	$ImportExportPopup.set_current_colors(colors)
 	$ImportExportPopup.show()
 	
-func _on_import_colors_set(colors):
-	viewport_planet.get_child(0).set_colors(colors)
+func _on_import_colors_set(colors_in: PackedColorArray) -> void:
+	viewport_planet.get_child(0).set_colors(colors_in)
 	for i in colorholder.get_child_count():
-		colorholder.get_child(i).set_color(colors[i])
+		colorholder.get_child(i).set_color(colors_in[i])
